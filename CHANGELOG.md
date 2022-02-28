@@ -1,3 +1,7 @@
+## 0.4.0
+
+- Bankslips
+
 ## 0.3.0
 
 - Class Plan

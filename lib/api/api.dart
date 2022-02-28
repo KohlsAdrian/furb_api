@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:beautiful_soup_dart/beautiful_soup.dart';
+import 'package:furb_api/models/bankslip_model.dart';
 import 'package:furb_api/models/class_model.dart';
 import 'package:furb_api/models/plan_model.dart';
 import 'package:furb_api/models/timetable_model.dart';
@@ -17,8 +18,12 @@ class FurbApi {
 
   static const _uTimetable =
       '$_base/academico/uHorario'; //get hidden student code (hacky)
+  static const _uFinancial =
+      '$_base/academico/uFinanca'; //get hidden codes for query (hacky)
+
   static const _loginUrl = '$_base/academico/validaLogon';
   static const _timetableUrl = '$_base/academico/userHorario';
+  static const _bankslipUrl = '$_base/academico/consaFinanca';
 
   static String? _jSessionId;
   static String? _studentCode;
@@ -70,6 +75,71 @@ class FurbApi {
     }
 
     return false;
+  }
+
+  static Future<List<BankslipModel>?> getBankslips() async {
+    try {
+      var response = await http.get(
+        Uri.parse(_uFinancial),
+        headers: _sessionHeader,
+      );
+
+      if (response.statusCode == 200) {
+        var body = response.body;
+        var page = BeautifulSoup(body);
+
+        final link =
+            page.findAll('input', attrs: {'name': 'vinculo'}).first['value'];
+        final name =
+            page.findAll('input', attrs: {'name': 'nome'}).first['value'];
+        final course =
+            page.findAll('input', attrs: {'name': 'curso'}).first['value'];
+        final courseType =
+            page.findAll('input', attrs: {'name': 'ds_vinculo'}).first['value'];
+
+        response = await http.post(
+          Uri.parse(_bankslipUrl),
+          headers: _sessionHeader,
+          body: {
+            'vinculo': link,
+            'nome': name,
+            'curso': course,
+            'ds_vinculo': courseType,
+          },
+        );
+
+        if (response.statusCode == 200) {
+          body = response.body;
+          page = BeautifulSoup(body);
+
+          final tables = page.findAll('table');
+          final rows = tables.last.findAll('tr').toList();
+
+          final bankslips = <BankslipModel>[];
+
+          for (int i = 1; i < rows.length; i++) {
+            final row = rows[i];
+            final tds = row.findAll('td');
+            bankslips.add(BankslipModel(
+              expireDate: tds[0].text.trim(),
+              healthInsurance: tds[1].text.trim(),
+              value: tds[2].text.trim(),
+              discount: tds[3].text.trim(),
+              deduction: tds[4].text.trim(),
+              addition: tds[5].text.trim(),
+              penalty: tds[6].text.trim(),
+              paymentDate: tds[7].text.trim(),
+              paidValue: tds[8].text.trim(),
+              url: tds[9].find('a')?['href'],
+            ));
+          }
+          return bankslips;
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+    return null;
   }
 
   static Future<List<PlanModel>?> getClassPlanFromTimetable(
