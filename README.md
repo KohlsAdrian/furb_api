@@ -48,6 +48,10 @@ https://www.furb.br/academico/userHorario;JSESSIONID=XXXXXXXXXXX
 
 ## Timetable
 
+[POST] https://www.furb.br/academico/userHorario;JSESSIONID=XXXXXXXXXXX
+
+## Body (Form-data):
+
 | Key       | Value     | Description
 ------------|-----------|-------------
 cd_aluno    | string    | Your studentCode
