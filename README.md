@@ -5,7 +5,7 @@
 
 # WARNING:  It's a hacky API, may break any time
 
-When you access https://www.furb.br/academico/uHorario after you are logged, in the HTML page you have the student code loaded in a hidden tag (shitty developers!! 💩)
+When you access https://www.furb.br/academico/uHorario after you are logged, in the HTML page you have the student code loaded in a hidden tag
 
 ![](bad_developers.png)
 
@@ -21,7 +21,7 @@ When you access https://www.furb.br/academico/uHorario after you are logged, in 
 ------------|------------|-------------
 nm_login     | string    | Your username without @furb.br
 ds_senha     | string    | your password
-nome_servlet | string    | this is a redirect, only work this way, shitty developers!! 💩
+nome_servlet | string    | this is a redirect, only works this way
 
 ## Eg:
 ```
