@@ -34,6 +34,8 @@ class FurbApi {
   static String? get jSessionID => _jSessionId;
   static String? get studentCode => _studentCode;
 
+  static Timer? _refresh;
+
   static Future<bool> login({
     required String username,
     required String password,
@@ -64,7 +66,14 @@ class FurbApi {
             final input = page.find('input', attrs: {'name': 'cd_aluno'});
             _studentCode = input?['value'];
 
-            return _studentCode != null;
+            if (_studentCode != null && _jSessionId != null) {
+              _refresh = Timer.periodic(Duration(minutes: 1), (timer) {
+                login(username: username, password: password);
+                print('refreshed session');
+              });
+
+              return true;
+            }
 
             /// end of Hacky way to get studentCode 💩
           }
@@ -270,6 +279,14 @@ class FurbApi {
       print(e);
     }
     return null;
+  }
+
+  Future<bool> logout() async {
+    _studentCode = null;
+    _jSessionId = null;
+    _refresh?.cancel();
+    _refresh = null;
+    return true;
   }
 
   static String _clearDirt(String content) =>
