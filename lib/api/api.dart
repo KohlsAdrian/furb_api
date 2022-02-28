@@ -57,6 +57,7 @@ class FurbApi {
           _studentCode = input?['value'];
 
           return _studentCode != null;
+
           /// end of Hacky way to get studentCode 💩
         }
       }
@@ -98,40 +99,19 @@ class FurbApi {
           course: tds[2].text,
           academicCredit: tds[3].text,
           financialCredit: tds[4].text,
-          day0: tds[5]
-              .innerHtml
-              .replaceAll('<br>', '_')
-              .replaceAll('&nbsp;', '')
-              .trim(),
-          day1: tds[6]
-              .innerHtml
-              .replaceAll('<br>', '_')
-              .replaceAll('&nbsp;', '')
-              .trim(),
-          day2: tds[7]
-              .innerHtml
-              .replaceAll('<br>', '_')
-              .replaceAll('&nbsp;', '')
-              .trim(),
-          day3: tds[8]
-              .innerHtml
-              .replaceAll('<br>', '_')
-              .replaceAll('&nbsp;', '')
-              .trim(),
-          day4: tds[9]
-              .innerHtml
-              .replaceAll('<br>', '_')
-              .replaceAll('&nbsp;', '')
-              .trim(),
-          day5: tds[10]
-              .innerHtml
-              .replaceAll('<br>', '_')
-              .replaceAll('&nbsp;', '')
-              .trim(),
+          day0: _clearDirt(tds[5].innerHtml),
+          day1: _clearDirt(tds[6].innerHtml),
+          day2: _clearDirt(tds[7].innerHtml),
+          day3: _clearDirt(tds[8].innerHtml),
+          day4: _clearDirt(tds[9].innerHtml),
+          day5: _clearDirt(tds[10].innerHtml),
         ));
       }
       return timetable;
     }
     return null;
   }
+
+  static String _clearDirt(String content) =>
+      content.replaceAll('<br>', '_').replaceAll('&nbsp;', '').trim();
 }
