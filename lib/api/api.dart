@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:beautiful_soup_dart/beautiful_soup.dart';
+import 'package:furb_api/models/class_model.dart';
 import 'package:furb_api/models/timetable_model.dart';
 import 'package:http/http.dart' as http;
 
@@ -10,13 +11,13 @@ enum TimetablePeriod {
 }
 
 class FurbApi {
-  static const _redirectUrl =
-      'https://www.furb.br/academico/servicosAcademicos';
+  static const _base = 'https://www.furb.br';
+  static const _redirectUrl = '$_base/academico/servicosAcademicos';
 
   static const _uTimetable =
-      'https://www.furb.br/academico/uHorario'; //get hidden student code (hacky)
-  static const _loginUrl = 'https://www.furb.br/academico/validaLogon';
-  static const _timetableUrl = 'https://www.furb.br/academico/userHorario';
+      '$_base/academico/uHorario'; //get hidden student code (hacky)
+  static const _loginUrl = '$_base/academico/validaLogon';
+  static const _timetableUrl = '$_base/academico/userHorario';
 
   static String? _jSessionId;
   static String? _studentCode;
@@ -66,7 +67,47 @@ class FurbApi {
     return false;
   }
 
-  static Future<List<TimetableClassModel>?> getTimetable({
+  static Future<ClassModel?> getClassFromTimetable(
+    TimetableModel timetableModel,
+  ) async {
+    final url = '$_base${timetableModel.courseClass}';
+    final response = await http.get(
+      Uri.parse(url),
+      headers: _sessionHeader,
+    );
+
+    if (response.statusCode == 200) {
+      final body = response.body;
+      final page = BeautifulSoup(body);
+
+      final tables = page.findAll('table');
+
+      final teachers = tables[0]
+          .findAll('font')
+          .where((e) => e.findAll('b').isEmpty)
+          .map((e) => e.text)
+          .toList();
+
+      final mStudents = tables[3]
+          .findAll('font')
+          .where((e) => e.findAll('b').isEmpty)
+          .toList();
+
+      final students = <ClassStudentModel>[];
+      for (int i = 0; i < mStudents.length; i += 2) {
+        final name = mStudents[i].text;
+        final code = mStudents[i + 1].text;
+        students.add(ClassStudentModel(name: name, code: code));
+      }
+      return ClassModel(
+        teachers: teachers,
+        students: students,
+      );
+    }
+    return null;
+  }
+
+  static Future<List<TimetableModel>?> getTimetable({
     int? year,
     TimetablePeriod? period,
   }) async {
@@ -90,11 +131,13 @@ class FurbApi {
       final page = BeautifulSoup(body);
       final table = page.find('table', attrs: {'class': 'bodyTable'});
       final rows = table?.findAll('tr');
-      final timetable = <TimetableClassModel>[];
+      final timetable = <TimetableModel>[];
       for (int i = 1; i < rows!.length - 3; i++) {
         final row = rows[i];
         final tds = row.findAll('td');
-        timetable.add(TimetableClassModel(
+        timetable.add(TimetableModel(
+          coursePlan: tds[0].find('a')?['href'],
+          courseClass: tds[1].find('a')?['href'],
           name: tds[1].text,
           course: tds[2].text,
           academicCredit: tds[3].text,

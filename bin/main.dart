@@ -24,12 +24,8 @@ void main(List<String> arguments) async {
     print(FurbApi.jSessionID);
     print(FurbApi.studentCode);
 
-    FurbApi.getTimetable().then((courses) {
-      if (courses != null) {
-        for (final course in courses) {
-          print(course.name);
-        }
-      }
-    });
+    final timetable = await FurbApi.getTimetable();
+    final classModel = await FurbApi.getClassFromTimetable(timetable!.first);
+    print(classModel?.teachers.toSet());
   }
 }

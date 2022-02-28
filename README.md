@@ -34,13 +34,13 @@ nome_servlet:https://www.furb.br/academico/servicosAcademicos
 
 On Login response you get the header for Authentication usage ("Token" expires on 5 minutes or 30 minutes, it's random)
 
-```curl
+Eg (Headers):
+
+```
 Cookie: JSESSIONID=XXXXXXXXX
 ```
-
-Eg:
-
-```url
+Eg (Path):
+```
 https://www.furb.br/academico/userHorario;JSESSIONID=XXXXXXXXXXX
 ```
 

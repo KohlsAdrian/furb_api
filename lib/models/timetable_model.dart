@@ -1,4 +1,6 @@
-class TimetableClassModel {
+class TimetableModel {
+  final String? coursePlan;
+  final String? courseClass;
   final String? name;
   final String? course;
   final String? academicCredit;
@@ -10,7 +12,9 @@ class TimetableClassModel {
   final String? day4;
   final String? day5;
 
-  TimetableClassModel({
+  TimetableModel({
+    this.coursePlan,
+    this.courseClass,
     this.name,
     this.course,
     this.academicCredit,
