@@ -25,7 +25,11 @@ void main(List<String> arguments) async {
     print(FurbApi.studentCode);
 
     final timetable = await FurbApi.getTimetable();
-    final classModel = await FurbApi.getClassFromTimetable(timetable!.first);
-    print(classModel?.teachers.toSet());
+    if (timetable != null) {
+      final classModel = await FurbApi.getClassFromTimetable(timetable.first);
+      print(classModel?.teachers.toSet());
+      final result = await FurbApi.getClassPlanFromTimetable(timetable.first);
+      print(result);
+    }
   }
 }
