@@ -1,3 +1,7 @@
+## 0.4.1
+
+- Refresh session automatically
+
 ## 0.4.0
 
 - Bankslips
