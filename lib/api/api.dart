@@ -34,8 +34,6 @@ class FurbApi {
   static String? get jSessionID => _jSessionId;
   static String? get studentCode => _studentCode;
 
-  static Timer? _refresh;
-
   static Future<bool> login({
     required String username,
     required String password,
@@ -67,11 +65,6 @@ class FurbApi {
             _studentCode = input?['value'];
 
             if (_studentCode != null && _jSessionId != null) {
-              _refresh = Timer.periodic(Duration(minutes: 1), (timer) {
-                login(username: username, password: password);
-                print('refreshed session');
-              });
-
               return true;
             }
 
@@ -284,8 +277,6 @@ class FurbApi {
   Future<bool> logout() async {
     _studentCode = null;
     _jSessionId = null;
-    _refresh?.cancel();
-    _refresh = null;
     return true;
   }
 
