@@ -54,6 +54,12 @@ cd_aluno    | string    | Your studentCode
 dt_anoati   | string    | year (default: current year)
 dt_semati   | string    | (1-2) first half or second half period
 
+## Eg:
+```
+cd_aluno:[student_code]
+dt_anoati:[year]
+dt_semati:[period]
+```
 
 ---
 
