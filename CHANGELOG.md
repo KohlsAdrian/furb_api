@@ -1,3 +1,7 @@
+## 0.4.2
+
+- Save RAW html on class Plan
+
 ## 0.4.1
 
 - Refresh session automatically

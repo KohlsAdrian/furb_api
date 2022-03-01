@@ -144,7 +144,7 @@ class FurbApi {
     return null;
   }
 
-  static Future<List<PlanModel>?> getClassPlanFromTimetable(
+  static Future<PlanModel?> getClassPlanFromTimetable(
     TimetableModel timetableModel,
   ) async {
     try {
@@ -158,18 +158,23 @@ class FurbApi {
         final body = response.body;
         final page = BeautifulSoup(body);
 
-        final tables = page.findAll('table', attrs: {'border': '1'});
+        final mainDiv = page.find('div', id: 'modificado');
+        final tables = mainDiv?.findAll('table', attrs: {'border': '1'});
+        if (tables == null) return null;
 
-        final sections = <PlanModel>[];
+        final sections = <List<String>>[];
 
         for (final table in tables) {
           List<String> newSections = [];
-          final plaintText = table.getText();
+          final plaintText = table.text;
           newSections.addAll(plaintText.split('\n'));
           newSections.removeWhere((element) => element.isEmpty);
-          sections.add(PlanModel(sections: newSections));
+          sections.add(newSections);
         }
-        return sections;
+        return PlanModel(
+          rawPage: mainDiv?.innerHtml,
+          sections: sections,
+        );
       }
     } catch (e) {
       print(e);
@@ -258,12 +263,12 @@ class FurbApi {
             course: tds[2].text,
             academicCredit: tds[3].text,
             financialCredit: tds[4].text,
-            day0: _clearDirt(tds[5].innerHtml),
-            day1: _clearDirt(tds[6].innerHtml),
-            day2: _clearDirt(tds[7].innerHtml),
-            day3: _clearDirt(tds[8].innerHtml),
-            day4: _clearDirt(tds[9].innerHtml),
-            day5: _clearDirt(tds[10].innerHtml),
+            day0: _clearTags(tds[5].innerHtml),
+            day1: _clearTags(tds[6].innerHtml),
+            day2: _clearTags(tds[7].innerHtml),
+            day3: _clearTags(tds[8].innerHtml),
+            day4: _clearTags(tds[9].innerHtml),
+            day5: _clearTags(tds[10].innerHtml),
           ));
         }
         return timetable;
@@ -280,6 +285,8 @@ class FurbApi {
     return true;
   }
 
-  static String _clearDirt(String content) =>
-      content.replaceAll('<br>', '_').replaceAll('&nbsp;', '').trim();
+  static String _clearTags(String content) => content
+      .replaceAll('<br>', '\n')
+      .replaceAll('&nbsp;&nbsp;', '\n')
+      .replaceAll('&nbsp;', '\n');
 }

@@ -1,5 +1,9 @@
 class PlanModel {
-  List<String> sections;
+  final String? rawPage;
+  List<List<String>> sections;
 
-  PlanModel({this.sections = const []});
+  PlanModel({
+    this.rawPage,
+    this.sections = const [],
+  });
 }
