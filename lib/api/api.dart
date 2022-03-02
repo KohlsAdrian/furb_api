@@ -1,10 +1,7 @@
 import 'dart:async';
 
 import 'package:beautiful_soup_dart/beautiful_soup.dart';
-import 'package:furb_api/models/bankslip_model.dart';
-import 'package:furb_api/models/class_model.dart';
-import 'package:furb_api/models/plan_model.dart';
-import 'package:furb_api/models/timetable_model.dart';
+import 'package:furb_api/furb_api.dart';
 import 'package:http/http.dart' as http;
 
 enum TimetablePeriod {
@@ -13,26 +10,29 @@ enum TimetablePeriod {
 }
 
 class FurbApi {
-  static const _base = 'https://www.furb.br';
-  static const _redirectUrl = '$_base/academico/servicosAcademicos';
+  static const _base = 'https://www.furb.br/academico';
+  static const _redirectUrl = '$_base/servicosAcademicos';
 
   static const _uTimetable =
-      '$_base/academico/uHorario'; //get hidden student code (hacky)
+      '$_base/uHorario'; //get hidden student code (hacky)
   static const _uFinancial =
-      '$_base/academico/uFinanca'; //get hidden codes for query (hacky)
+      '$_base/uFinanca'; //get hidden codes for query (hacky)
 
-  static const _loginUrl = '$_base/academico/validaLogon';
-  static const _timetableUrl = '$_base/academico/userHorario';
-  static const _bankslipUrl = '$_base/academico/consaFinanca';
+  static const _loginUrl = '$_base/validaLogon';
+  static const _timetableUrl = '$_base/userHorario';
+  static const _bankslipUrl = '$_base/consaFinanca';
+  static const _studentUrl = '$_base/alteraEndereco1';
 
   static String? _jSessionId;
   static String? _studentCode;
+  static LoggedStudentModel? _loggedStudent;
 
   static Map<String, String> get _sessionHeader =>
       {'Cookie': 'JSESSIONID=$_jSessionId'};
 
   static String? get jSessionID => _jSessionId;
   static String? get studentCode => _studentCode;
+  static LoggedStudentModel? get loggedStudent => _loggedStudent;
 
   static Future<bool> login({
     required String username,
@@ -65,7 +65,9 @@ class FurbApi {
             _studentCode = input?['value'];
 
             if (_studentCode != null && _jSessionId != null) {
-              return true;
+              final studentModel = await _getStudent();
+              _loggedStudent = studentModel;
+              return _loggedStudent != null;
             }
 
             /// end of Hacky way to get studentCode 💩
@@ -77,6 +79,46 @@ class FurbApi {
     }
 
     return false;
+  }
+
+  static Future<LoggedStudentModel?> _getStudent() async {
+    try {
+      final response = await http.get(
+        Uri.parse(_studentUrl),
+        headers: _sessionHeader,
+      );
+
+      if (response.statusCode == 200) {
+        var body = response.body;
+        var page = BeautifulSoup(body);
+
+        final table = page.find('table');
+        final tr = table?.findAll('tr');
+        if (tr != null) {
+          final studentModel = LoggedStudentModel(
+            cep: tr[1].findAll('td')[1].text,
+            address: tr[2].findAll('td')[1].text,
+            number: tr[3].findAll('td')[1].text,
+            houseType: tr[4].findAll('td')[1].text,
+            neighborhood: tr[5].findAll('td')[1].text,
+            city: tr[6].findAll('td')[1].text,
+            state: tr[7].findAll('td')[1].text,
+            zipcode: tr[8].findAll('td')[1].text,
+            phone: tr[9].findAll('td')[1].text,
+            cellphone: tr[10].findAll('td')[1].text,
+            companyName: tr[11].findAll('td')[1].text,
+            companyPhoneType: tr[12].findAll('td')[1].text.trim(),
+            username: tr[13].findAll('td')[1].text,
+            personEmail: tr[14].findAll('td')[1].text,
+            studentEmail: tr[15].findAll('td')[1].text,
+          );
+          return studentModel;
+        }
+      }
+    } catch (e) {
+      print(e.toString());
+    }
+    return null;
   }
 
   static Future<List<BankslipModel>?> getBankslips() async {

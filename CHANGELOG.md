@@ -1,3 +1,7 @@
+## 0.4.3
+
+- Retrieve Student Info
+
 ## 0.4.2
 
 - Save RAW html on class Plan
