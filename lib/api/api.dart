@@ -13,8 +13,6 @@ class FurbApi {
   static const _base = 'https://www.furb.br/academico';
   static const _redirectUrl = '$_base/servicosAcademicos';
 
-  static const _uTimetable =
-      '$_base/uHorario'; //get hidden student code (hacky)
   static const _uFinancial =
       '$_base/uFinanca'; //get hidden codes for query (hacky)
 
@@ -22,9 +20,11 @@ class FurbApi {
   static const _timetableUrl = '$_base/userHorario';
   static const _bankslipUrl = '$_base/consaFinanca';
   static const _studentUrl = '$_base/alteraEndereco1';
+  static const _printsUrl = '$_base/consultaImpressoes';
 
   static String? _jSessionId;
   static String? _studentCode;
+  static String? _studentName;
   static LoggedStudentModel? _loggedStudent;
 
   static Map<String, String> get _sessionHeader =>
@@ -32,6 +32,7 @@ class FurbApi {
 
   static String? get jSessionID => _jSessionId;
   static String? get studentCode => _studentCode;
+  static String? get studentName => _studentName;
   static LoggedStudentModel? get loggedStudent => _loggedStudent;
 
   static Future<bool> login({
@@ -53,24 +54,34 @@ class FurbApi {
           final cookie = response.headers['set-cookie'];
           _jSessionId = cookie?.split(';').first.replaceAll('JSESSIONID=', '');
 
-          /// Hacky way to get studentCode 💩
-          response = await http.get(
-            Uri.parse('$_uTimetable;JSESSIONID=$_jSessionId'),
-            headers: _sessionHeader,
-          );
-          if (response.statusCode == 200) {
-            final body = response.body;
-            final page = BeautifulSoup(body);
-            final input = page.find('input', attrs: {'name': 'cd_aluno'});
-            _studentCode = input?['value'];
+          if (_jSessionId != null) {
+            // hacky way to retrieve student info
+            response = await http.get(
+              Uri.parse(_printsUrl),
+              headers: _sessionHeader,
+            );
+            if (response.statusCode == 200) {
+              var body = response.body;
+              var page = BeautifulSoup(body);
 
-            if (_studentCode != null && _jSessionId != null) {
-              final studentModel = await _getStudent();
-              _loggedStudent = studentModel;
-              return _loggedStudent != null;
+              final p = page
+                  .find('div', id: 'quadroTransparente')
+                  ?.findAll('p')
+                  .first;
+              final codeName = p?.text.replaceAll('Usuário: ', '').split('-');
+
+              final code = codeName?.first.trim();
+              final name = codeName?.last.trim();
+
+              _studentCode = code;
+              _studentName = name;
+
+              if (_studentCode != null && _studentName != null) {
+                final studentModel = await _getStudent(_studentName);
+                _loggedStudent = studentModel;
+                return _studentName != null;
+              }
             }
-
-            /// end of Hacky way to get studentCode 💩
           }
         }
       }
@@ -81,7 +92,7 @@ class FurbApi {
     return false;
   }
 
-  static Future<LoggedStudentModel?> _getStudent() async {
+  static Future<LoggedStudentModel?> _getStudent([String? name]) async {
     try {
       final response = await http.get(
         Uri.parse(_studentUrl),
@@ -96,6 +107,7 @@ class FurbApi {
         final tr = table?.findAll('tr');
         if (tr != null) {
           final studentModel = LoggedStudentModel(
+            name: name,
             cep: tr[1].findAll('td')[1].text,
             address: tr[2].findAll('td')[1].text,
             number: tr[3].findAll('td')[1].text,

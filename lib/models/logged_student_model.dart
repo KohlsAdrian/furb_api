@@ -1,4 +1,5 @@
 class LoggedStudentModel {
+  final String? name;
   final String? cep;
   final String? address;
   final String? number;
@@ -16,6 +17,7 @@ class LoggedStudentModel {
   final String? studentEmail;
 
   LoggedStudentModel({
+    required this.name,
     required this.cep,
     required this.address,
     required this.number,
@@ -32,4 +34,22 @@ class LoggedStudentModel {
     required this.personEmail,
     required this.studentEmail,
   });
+
+  Map<String, String?> toMap() => {
+        'cep': cep,
+        'address': address,
+        'number': number,
+        'houseType': houseType,
+        'neighborhood': neighborhood,
+        'city': city,
+        'state': state,
+        'zipcode': zipcode,
+        'phone': phone,
+        'cellphone': cellphone,
+        'companyName': companyName,
+        'companyPhoneType': companyPhoneType,
+        'username': username,
+        'personEmail': personEmail,
+        'studentEmail': studentEmail,
+      };
 }

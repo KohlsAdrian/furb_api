@@ -1,3 +1,9 @@
+## 0.5.0
+
+- Refactor student code
+
+- Retrieve student name
+
 ## 0.4.3
 
 - Retrieve Student Info
